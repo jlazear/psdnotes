@@ -1,0 +1,302 @@
+\documentclass{article}
+\usepackage[left=3cm,right=3cm,top=0cm,bottom=2cm]{geometry}
+\usepackage{amsmath, amsfonts, amssymb}
+
+\title{Notes on Estimating Power Spectra}
+\author{Justin Lazear}
+
+\newcommand{\dd}[1]{\mathrm{d}#1\,}
+\newcommand{\Avg}[1]{\left< #1 \right>}
+\DeclareMathOperator{\vvar}{var}
+\DeclareMathOperator{\rect}{rect}
+
+\begin{document}
+\maketitle
+
+The power spectrum, or power spectral density, \(Sxx(f)\) of a signal \(x(t)\) 
+describes the amount of power per unit bandwidth in contained in the signal. 
+
+Let us start with something simpler: the standard instantaneous power. We will
+also specialize to electrical signals, i.e.~signals for which \(x(t)\) is a 
+voltage and has units of Volts. 
+
+The power of a signal is simply
+
+\[\left[\mathrm{W}\right] \qquad P = \frac{V^2}{R} = \frac{\left|x(t)\right|^2}{R} \qquad \left[\frac{\mathrm{V}^2}{\Omega}\right]\]
+%
+where we permit \(x(t)\) to be complex to allow it to hold a phase. 
+
+Then the average power of some time period \(T\) is
+
+\begin{equation}
+    \left[\mathrm{W}\right] \qquad \Avg{P} = \frac{1}{T} \int_T \dd{t} P(t) = \frac{1}{TR} \int_T \dd{t} \left|x(t)\right|^2 \qquad \left[\mathrm{\frac{1}{s\cdot \Omega} \cdot s \cdot V^2}\right] \label{eq:power}
+\end{equation}
+
+This may be converted into the frequency domain using Parseval's Theorem
+(App.~\ref{appendix:parsevals}):
+
+\begin{align}
+    \left[\mathrm{W}\right] \qquad \Avg{P} & = \frac{1}{TR} \int_T \dd{t} \left|x(t)\right|^2 = \frac{1}{TR} \int \dd{f} \left|X(f)\right|^2 \qquad \left[\mathrm{\frac{1}{s\cdot \Omega} \cdot \frac{1}{s} \cdot V^2\cdot s^2}\right] \notag \\
+    & = \int \dd{f} \frac{1}{TR} \left|X(f)\right|^2 \notag \\
+    \left[\mathrm{W}\right] \qquad \Avg{P} & = \int \dd{f} P_{xx}(f) \qquad \left[\mathrm{Hz}\right] \left[\mathrm{\frac{W}{Hz}}\right]\label{eq:Pxx}
+\end{align}
+%
+where we've defined the power spectral density (PSD)
+
+\begin{equation}
+    P_{xx}(f) \equiv \frac{1}{TR}\left|X(f)\right|^2 \label{eq:Pxxdef}
+\end{equation}
+%
+which has units of \(\left[\mathrm{W/Hz}\right]\). We will also shortly encounter another
+definition of the power spectral density that does not incorporate the impedance \(R\),
+since it is a useful intermediate computational step:
+\begin{align}
+    \left[\mathrm{\frac{V^2}{Hz}}\right] \qquad S_{xx}(f) & \equiv \frac{1}{T}\left|X(f)\right|^2 \label{eq:Sxxdef} \\
+    S_{xx}(f) & = P_{xx}(f) \cdot R \notag
+\end{align}
+%
+The PSD describes how much power is contained in each unit of bandwidth of a signal
+\(x(t)\). Integrating over a specific bandwidth (i.e.~frequency range) gives the
+amount of power contained in that bandwidth. 
+
+In practice, we cannot measure the continuous values of \(x(t)\). Instead, we sample
+the signal at some sampling rate \(f_s = 1/T_s\) for some number of samples \(N\) over some
+period of time \(T = NT_s=N/f_s\). We need to discretize our expressions. We'll use
+this map:
+%
+\begin{align*}
+    t & \to n\cdot \Delta t = T_s n \\
+    f & \to k \cdot \Delta f \qquad \Delta f = f_s/N \\
+    x(t) & \to x(T_s n) = x[n] \\
+    X(f) & \to X(k\cdot \Delta f) \\
+    \dd{t} & \to \Delta t = T_s \\
+    \dd{f} & \to \Delta f \\
+    \int & \to \sum
+\end{align*}
+%
+where we've assumed that our period of time starts at \(t_0 = 0\) for convenience. 
+
+Let's start by discretizing the Fourier Transform
+%
+\begin{align}
+    X(f) & = \int \dd{t} \exp\left(-2\pi i f t\right) x(t) \notag \\
+    X(k\cdot \Delta f) & = \sum_{n=0}^{N-1} T_s \exp\left(-2\pi i \cdot k\Delta f \cdot T_s n\right) x[n] \notag \\
+    & = T_s \sum_{n=0}^{N-1} T_s \exp\left(-2\pi i kn/N\right) x[n] \notag \\
+    \left[\mathrm{V\cdot s}\right]\qquad X(k\cdot \Delta f) & = T_s X[k] \qquad \left[\mathrm{s\cdot V}\right]\label{eq:XktoXf}
+\end{align}
+%
+so our Fourier Transform is estimated by the sampling period \(T_s\) times the 
+Discrete Fourier Transform \(X[k]\), and we observe the sampling period is required
+to align the units. 
+
+Substituting in this estimate for \(X(f)\) into the PSD (Eq.~\eqref{eq:Pxxdef}),
+%
+\begin{align}
+    P_{xx}(f) & \equiv \frac{1}{TR} \left|X(f)\right|^2 \notag \\
+    P_{xx}(k\cdot \Delta f) & = \frac{1}{N T_s R} \left|T_s X[k]\right|^2 \notag \\
+    & = \frac{T_s}{N R} \left|X[k]\right|^2 \notag \\
+    \left[\mathrm{\frac{W}{Hz}}\right] \qquad P_{xx}(k\cdot \Delta f) & = \frac{1}{N f_s R} \left|X[k]\right|^2 \qquad \left[\mathrm{\frac{V^2}{Hz\cdot \Omega}}\right] \label{eq:Pxxkdf}
+\end{align}
+%
+So the power spectral density is related to the DFT of the signal, but we must
+incorporate the unitless scaling factor \(1/N\) and we use the full bandwidth
+\(f_s\). Intuitively, we think of \(\left|X[k]\right|^2/R\) as something akin to 
+the power in each bin \(k\), so we would want to divide by the binwidth \(\Delta f\)
+to get back to a spectral quantity, i.e.~something like
+%
+\begin{equation}
+    \qquad P_{xx}(k\cdot \Delta f) = \frac{1}{N^2} \frac{\left|X[k]\right|^2}{R\Delta f}
+\end{equation}
+%
+in which case our unitless correction factor is actually \(1/N^2\).
+
+Inserting this into our estimate for average power Eq.~\eqref{eq:Pxx},
+%
+\begin{align}
+    \Avg{P} & = \int \dd{f} P_{xx}(f) \notag \\
+    & = \sum_k \Delta f \frac{1}{N^2} \frac{\left|X[k]\right|^2}{R\Delta f} \notag \\
+    & = \sum_k \frac{1}{N^2} \frac{\left|X[k]\right|^2}{R} \qquad \left[\mathrm{bins \cdot \frac{W}{bin}}\right] \label{eq:PfromXk}\\
+    \Avg{P} & = \sum_k P_{xx}[k] \label{eq:Psumoverbins}
+\end{align}
+%
+where we've defined yet another power spectral density, this time one in units of
+\(\mathrm{W/bin}\):
+%
+\begin{equation}
+    P_{xx}[k] = \frac{1}{N^2} \frac{\left|X[k]\right|^2}{R} \qquad \left[\mathrm{\frac{W}{bin}}\right]\label{eq:Pxxkdef}
+\end{equation}
+%
+which we can sum over the bins corresponding to our bandwidth of interest to get
+the amount of power in the band of interest. These quantities all have the same 
+name (``power spectral density''), so the way to distinguish them is via their
+units. Units are important!
+
+We frequently encounter and are interested in both the per-Hz variety and the per-bin
+variety, so we need to be able to convert between them. Intuitively, the amount of
+power in a bin is simply the integral of the PSD (W/Hz) over the bandwidth of one
+bin (the binwidth \(\Delta f \left[\mathrm{Hz/bin}\right]\)). If we assume the PSD (W/Hz) is constant, or more
+precisely we have an estimate of the average value, over the binwidth, then the
+conversion should be
+%
+\begin{equation}
+    \left[\mathrm{\frac{W}{bin}\cdot \frac{bin}{Hz}}\right] \qquad \frac{P_{xx}[k]}{\Delta f} = P_{xx} (k\Delta f) \qquad \left[\mathrm{\frac{W}{Hz}}\right] \label{eq:Pxxkconversion}
+\end{equation}
+%
+which we can verify by comparing Eq.~\eqref{eq:Pxxkdef} with Eq.~\eqref{eq:PfromXk}.
+
+In practice, we usually use a periodogram method to estimate
+%
+\begin{equation}
+    S_{xx}[k] = \frac{1}{N^2}\left|X[k]\right|^2 \qquad \left[\mathrm{\frac{V^2}{bin}}\right] \label{eq:Sxxperbin}
+\end{equation}
+%
+because we want to tune our estimates for the desired bin width and mitigate
+windowing errors. The typical units coming out of a periodogram routine are either
+\(\mathrm{V^2/bin}\) or \(\mathrm{V^2/Hz}\), depending on the routine's configuration.
+To get back to Watts, we simply divide by the impedance \(R\)
+%
+\begin{equation}
+    P_{xx}(k\cdot\Delta f) = \frac{S_{xx}(k\cdot\Delta f)}{R} = \frac{S_{xx}[k]}{R\Delta f} = \frac{P_{xx}[k]}{\Delta f}
+\end{equation}
+
+\appendix
+\section{Units of the Fourier Transform and Discrete Fourier Transform}\label{appendix:units}
+
+Let's examine the units of the Fourier Transform. The Fourier Transform is
+defined as
+%
+\[X(f) = \int \dd{t} \exp \left(-2\pi i ft\right) x(t)\]
+%
+Supposing \(x(t)\) is a voltage and has units of Volts,
+%
+\begin{align*}
+    X(f) &= \int \dd{t} \exp \left(-2\pi i ft\right) x(t) \\
+    \left[\mathrm{V}\cdot \mathrm{s}\right] &= \left[\mathrm{s}\right] \left[1\right] \left[\mathrm{V}\right]
+\end{align*}
+%
+where the seconds comes from the \(\dd{t}\) and the Volts comes from the \(x(t)\),
+while the exponential is unitless.
+
+For the Discrete Fourier Transform, we have
+%
+\begin{align*}
+    X[k] &= \sum_{n=0}^{N-1} \exp\left(-2\pi i kn/N\right) x[n] \\
+    \left[\mathrm{V}\right] &= \left[1\right] \left[V\right]
+\end{align*}
+%
+There is no differential, so we do not pick up a unit from it. Therefore the 
+units of the DFT are Volts on both sides. 
+
+\section{Parseval's Theorem}\label{appendix:parsevals}
+
+Parseval's Theorem relates the integrated energy of a signal from a time-domain
+perspective and from a frequency-domain perspective. Specifically, it states
+for a signal \(x(t)\) and its Fourier Transform \(X(f)\):
+
+\begin{equation}
+    \int \dd{t} \left| x(t) \right|^2 = \int \dd{f} \left| X(f) \right|^2\label{eq:parsevals}
+\end{equation}
+
+The proof is straightforward:
+
+\begin{align*}
+    \int \dd{f} \left| X(f) \right|^2 &= \int \dd{f} X^*(f) \int \dd{t} \exp\left( 2\pi i f t \right) x(t) \\
+    &= \int \dd{t} x(t) \int \dd{f} \exp\left( 2\pi i f t \right) X^*(f) \\
+    &= \int \dd{t} x(t) \left[ \int \dd{f} \exp{\left( -2\pi i f t \right) X(f)} \right]^* \\
+    &= \int \dd{t} x(t) x^*(t) \\
+    &= \int \dd{t} \left| x(t) \right|^2
+\end{align*}
+
+For a discrete signal \(x[n]\) and its Discrete Fourier Transform \(X[k]\):
+
+\[ \sum_{n=0}^{N-1} \left|x[n]\right|^2 = \frac{1}{N}\sum_{k=0}^{N-1} \left|X[k]\right|^2 \]
+
+Notably this picks up a \(1/N\), which comes from the inverse DFT having a \(1/N\). 
+The proof is similar:
+%
+\begin{align*}
+    \sum_{n=0}^{N-1} \left|x[n]\right|^2 & = \sum_{n=0}^{N-1} x[n] \left[ \frac{1}{N} \sum_{k=0}^{N-1} \exp\left(2\pi ikn/N\right) X[k] \right]^* \\
+    & = \frac{1}{N} \sum_{k=0}^{N-1}X^*[k] \sum_{n=1}^{N-1} \exp\left(-2\pi ikn/N\right) x[n] \\
+    & = \frac{1}{N} \sum_{k=0}^{N-1}X^*[k] X[k] \\
+    & = \frac{1}{N} \sum_{k=0}^{N-1}\left| X[k] \right|^2 \\
+\end{align*}
+
+\section{Limits of Integration}\label{appendix:limits}
+
+Most of this discussion glosses over the exact limits of integration in order
+to focus the attention on the transformations. In the end, there are only one
+reasonable option for limits in each expression, so an exact specification is
+not strictly necessary. Let us see how this is the case. 
+
+Firstly, in Parseval's Theorem (Eq.~\eqref{eq:parsevals}), the limits of
+integration must be \(-\infty\to\infty\):
+%
+\begin{equation*}
+    \int_{-\infty}^{\infty} \dd{t} \left|x(t)\right|^2 = \int_{-\infty}^{\infty} \dd{f} \left|X(f)\right|^2
+\end{equation*}
+%
+which points to the general principle here: unless otherwise specified, consume
+all of the region of integration (i.e.~bandwidth). 
+
+Next, we note that the average power Eq.~\eqref{eq:power} is more precisely
+%
+\begin{equation}
+    \Avg{P} = \frac{1}{TR}\int_{t_0}^{t_0+T} \dd{t} \left|x(t)\right|^2
+\end{equation}
+%
+with a region of integration of only width \(T\), but we immediately apply 
+Parseval's theorem (with its infinite region of integration) to convert to
+the frequency domain. What gives? 
+
+The resolution is that in a physical system, we cannot consider an infinite
+region. We are always limited to measuring some time-limited period \(T\).
+In such scenarios, we choose a domain expansion that satisfies the needs of
+our mathematical tools. In this case, we must expand \(x(t)\) to have a
+support of \(t: -\infty\to\infty\). The only choice of expansion that does
+not change the value (or meaning) of \(\Avg{P}\) is to set
+\(x(t) = 0\ \forall\ t \notin (t_0, t_0+T)\). Of course, \(x(t)\) does have
+non-zero values for \(t\) outside of our region of interest, so this is
+an arbitrary assumption. It is, however, equivalent to multiplying \(x(t)\)
+by a rectangular window function \(w(t)=\rect{\left(t_0, t_0+T\right)}\), in which case
+this identity holds:
+%
+\begin{equation}
+    \int_{t_0}^{t_0+T} \dd{t} \left|x(t)\right|^2 
+    = \int_{-\infty}^{\infty} \dd{t} w(t) x(t)
+    = \int_{-\infty}^{\infty} \dd{t} x'(t)
+\end{equation}
+%
+And we can rightly apply Parseval's Theorem to \(x'(t)\). The multiplication of
+\(w(t)\) has consequences due to the Convolution Theorem, since really our
+frequency domain will be of \(X(f)\ast W(f)\) and the window function
+contaminates our representation. We'll have a look at this in more detail
+when periodogram (i.e.~Welch's) methods are discussed. But for getting the
+concepts and basic definitions down, we can shelve this complication.
+
+\section{Relationships to Variance}\label{appendix:variance}
+
+The variance of a signal \(x(t)\) is
+%
+\begin{equation*}
+    \sigma_x^2 = \vvar{x} \equiv \Avg{x^2} - \Avg{x}^2
+\end{equation*}
+%
+For a mean-zero (\(\Avg{x}=0\)) signal, this reduces to
+%
+\begin{align}
+    \sigma_x^2 & = \Avg{x}^2 \notag\\
+    \sigma_x^2 & = \frac{1}{T} \int_T \dd{t} \left|x(t)\right|^2 \label{eq:varx}
+\end{align}
+%
+Comparing Eq.~\eqref{eq:varx} to Eq.~\eqref{eq:power}, we observe
+%
+\begin{equation}
+    \Avg{P} = \frac{\sigma_x^2}{R} \label{eq:x2overR}
+\end{equation}
+%
+We can also apply Parseval's Theorem (Eq.~\eqref{eq:parsevals}) here to get
+%
+\begin{equation}
+    \sigma_x^2 = \frac{1}{T} \int \dd{f} \left|X(f)\right|^2 \label{eq:varxfdomain}
+\end{equation}
+\end{document}
