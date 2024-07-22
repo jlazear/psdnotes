@@ -81,7 +81,7 @@ Let's start by discretizing the Fourier Transform
 \begin{align}
     X(f) & = \int \dd{t} \exp\left(-2\pi i f t\right) x(t) \notag \\
     X(k\cdot \Delta f) & = \sum_{n=0}^{N-1} T_s \exp\left(-2\pi i \cdot k\Delta f \cdot T_s n\right) x[n] \notag \\
-    & = T_s \sum_{n=0}^{N-1} T_s \exp\left(-2\pi i kn/N\right) x[n] \notag \\
+    & = T_s \sum_{n=0}^{N-1} \exp\left(-2\pi i kn/N\right) x[n] \notag \\
     \left[\mathrm{V\cdot s}\right]\qquad X(k\cdot \Delta f) & = T_s X[k] \qquad \left[\mathrm{s\cdot V}\right]\label{eq:XktoXf}
 \end{align}
 %
